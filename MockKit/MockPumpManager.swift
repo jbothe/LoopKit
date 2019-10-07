@@ -48,7 +48,7 @@ public final class MockPumpManager: TestingPumpManager {
     )
 
     private static let deliveryUnitsPerMinute = 1.5
-    private static let pulsesPerUnit: Double = 20
+    private static let pulsesPerUnit: Double = 40
     private static let pumpReservoirCapacity: Double = 200
 
     public var pumpReservoirCapacity: Double {
@@ -69,7 +69,19 @@ public final class MockPumpManager: TestingPumpManager {
     }
 
     public var supportedBasalRates: [Double] {
-        return (0...700).map { Double($0) / Double(type(of: self).pulsesPerUnit) }
+
+        // Newer Minimed basal rates (>= x23)
+        // 0.025 units (for rates between 0.0-0.975 U/h)
+        let rateGroup1 = ((0...39).map { Double($0) / Double(type(of: self).pulsesPerUnit) })
+        // 0.05 units (for rates between 1-9.95 U/h)
+        let rateGroup2 = ((20...199).map { Double($0) / (Double(type(of: self).pulsesPerUnit) / 2 ) })
+        // 0.1 units (for rates between 10-35 U/h)
+        let rateGroup3 = ((100...350).map { Double($0) / (Double(type(of: self).pulsesPerUnit) / 4) })
+        return rateGroup1 + rateGroup2 + rateGroup3
+
+        // Older Minimed basal rates (<= x22)
+        // 0.05 units for rates between 0.0-35U/hr
+        // return (0...700).map { Double($0) / (Double(type(of: self).pulsesPerUnit) / 2) }
     }
 
     public var maximumBasalScheduleEntryCount: Int {
